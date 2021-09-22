@@ -14,7 +14,7 @@ namespace StateMachine.Demo
         {
         }
 
-        public virtual void Initialize(IObjectWithState owner, object paramObj = null)
+        public virtual void Initialize(object owner, object paramObj = null)
         {
             Battle = (Battle)owner;
         }

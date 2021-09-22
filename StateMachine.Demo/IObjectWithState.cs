@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,14 +9,19 @@ namespace StateMachine.Demo
 {
     public interface IObjectWithState
     {
-        Dictionary<string,Type> StateTypes { get; set; }
+
+    }
+
+    public interface IObjectWithState<TStateKey> : IObjectWithState
+    {
+        Dictionary<TStateKey, Type> StateTypes { get; set; }
         IStateScript CurrentStateScript { get; set; }
-        string CurrentState { get; set; }
+        TStateKey CurrentState { get; set; }
     }
 
     public static class IObjectWithStateExtensions
     {
-        public static void SetState(this IObjectWithState obj, string newState, object paramObj = null)
+        public static void SetState<TStateKey>(this IObjectWithState<TStateKey> obj, TStateKey newState, object paramObj = null)
         {
             if (obj.CurrentStateScript != null)
             {
@@ -29,9 +35,17 @@ namespace StateMachine.Demo
             obj.CurrentStateScript.Initialize(obj, paramObj);
         }
 
-        public static void Process(this IObjectWithState obj)
+        public static void Process<TStateKey>(this IObjectWithState<TStateKey> obj)
         {
             obj.CurrentStateScript.Process();
+        }
+
+        public static void AddState<TStateScript>(this IObjectWithState obj, object stateKey) where TStateScript : IStateScript
+        {
+            var type = obj.GetType();
+            var stateTypesProperty = type.GetProperty("StateTypes");
+            var stateTypes = (IDictionary)stateTypesProperty.GetValue(obj);
+            stateTypes.Add(stateKey, typeof(TStateScript));
         }
     }
 

@@ -8,7 +8,7 @@ namespace StateMachine.Demo
 {
     public interface IStateScript
     {
-        void Initialize(IObjectWithState owner, object paramObj = null);
+        void Initialize(object owner, object paramObj = null);
         void Process();
         void Deinitialize();
 

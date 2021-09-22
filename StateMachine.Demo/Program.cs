@@ -13,10 +13,17 @@ namespace StateMachine.Demo
                 {
                     new Actor()
                     {
-                        Name = "Hero",
+                        Name = "Knight",
                         Team = "Player",
                         MaxHp = 100,
                         Attack = 10
+                    },
+                    new Actor()
+                    {
+                        Name = "Archer",
+                        Team = "Player",
+                        MaxHp = 50,
+                        Attack = 20
                     },
                     new Actor()
                     {
@@ -42,12 +49,12 @@ namespace StateMachine.Demo
                 }
 
             };
-            battle.SetState("Start");
+            battle.SetState(BattleState.Start);
 
             while(true)
             {
                 battle.Process();
-                if (battle.CurrentState == "Over")
+                if (battle.CurrentState == BattleState.Over)
                 {
                     break;
                 }

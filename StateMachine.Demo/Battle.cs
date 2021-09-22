@@ -6,23 +6,25 @@ using System.Threading.Tasks;
 
 namespace StateMachine.Demo
 {
-    public class Battle : IObjectWithState
+    public enum BattleState
     {
-        public Dictionary<string, Type> StateTypes { get; set; } = new Dictionary<string, Type>()
-        {
-            { "Start", typeof(StartState) },
-            { "NextRound", typeof(NextRoundState) },
-            { "NextTurn", typeof(NextTurnState) },
-            { "PlayerTurn", typeof(PlayerTurnState) },
-            { "AiTurn", typeof(AiTurnState) },
-            { "ActorUsesSkill", typeof(ActorUsesSkillState) },
-            { "Won", typeof(WonState) },
-            { "Lost", typeof(LostState) },
-            { "Over", typeof(OverState) },
-        };
+        Start,
+        NextRound,
+        NextTurn,
+        PlayerTurn,
+        AiTurn,
+        ActorUsesSkill,
+        Won,
+        Lost,
+        Over
+    }
+
+    public class Battle : IObjectWithState<BattleState>
+    {
+        public Dictionary<BattleState, Type> StateTypes { get; set; } = new Dictionary<BattleState, Type>();
 
         public IStateScript CurrentStateScript { get; set; }
-        public string CurrentState { get; set; }
+        public BattleState CurrentState { get; set; }
 
         public List<Actor> Actors { get; set; }
 
@@ -34,6 +36,25 @@ namespace StateMachine.Demo
         public Actor CurrentActor { get; set; }
 
         public int Round { get; set; }
+
+        public Battle()
+        {
+            InitStates();
+        }
+
+        public void InitStates()
+        {
+            this.AddState<StartState>(BattleState.Start);
+            this.AddState<NextRoundState>(BattleState.NextRound);
+            this.AddState<NextTurnState>(BattleState.NextTurn);
+            this.AddState<PlayerTurnState>(BattleState.PlayerTurn);
+            this.AddState<AiTurnState>(BattleState.AiTurn);
+            this.AddState<ActorUsesSkillState>(BattleState.ActorUsesSkill);
+            this.AddState<WonState>(BattleState.Won);
+            this.AddState<LostState>(BattleState.Lost);
+            this.AddState<OverState>(BattleState.Over);
+        }
+
     }
 
     internal class StartState : BattleStateScript
@@ -41,7 +62,7 @@ namespace StateMachine.Demo
         public override void Process()
         {
             Battle.Actors.ForEach(actor => actor.Hp = actor.MaxHp);
-            Battle.SetState("NextRound");
+            Battle.SetState(BattleState.NextRound);
         }
     }
 
@@ -64,7 +85,7 @@ namespace StateMachine.Demo
             var playerTeam = Battle.GetTeam("Player");
             RenderTeam(playerTeam);
             Console.WriteLine($"");
-            Battle.SetState("NextTurn");
+            Battle.SetState(BattleState.NextTurn);
         }
 
         private void RenderTeam(IEnumerable<Actor> team)
@@ -86,7 +107,7 @@ namespace StateMachine.Demo
         public override void Process()
         {
             Console.WriteLine("You lost");
-            Battle.SetState("Over");
+            Battle.SetState(BattleState.Over);
         }
     }
 
@@ -95,14 +116,14 @@ namespace StateMachine.Demo
         public override void Process()
         {
             Console.WriteLine("You won");
-            Battle.SetState("Over");
+            Battle.SetState(BattleState.Over);
         }
     }
 
     public class ActorUsesSkillState : BattleStateScript
     {
         private Actor Target { get; set; }
-        public override void Initialize(IObjectWithState owner, object paramObj = null)
+        public override void Initialize(object owner, object paramObj = null)
         {
             base.Initialize(owner, paramObj);
             Target = (Actor)paramObj;
@@ -123,7 +144,7 @@ namespace StateMachine.Demo
                 Console.WriteLine($"{Target.Name} dies");
             }
             Console.WriteLine("");
-            Battle.SetState("NextTurn");
+            Battle.SetState(BattleState.NextTurn);
         }
     }
 
@@ -137,28 +158,28 @@ namespace StateMachine.Demo
             }
             if (Battle.HasTeamLost("AI"))
             {
-                Battle.SetState("Won");
+                Battle.SetState(BattleState.Won);
                 return;
             }
             if (Battle.HasTeamLost("Player"))
             {
-                Battle.SetState("Lost");
+                Battle.SetState(BattleState.Lost);
                 return;
             }
             var currentActorId = Battle.Actors.IndexOf(Battle.CurrentActor);
             var nextActor = Battle.Actors.Where((actor, id) => !actor.IsDead && id > currentActorId).FirstOrDefault();
             if (nextActor == null)
             {
-                Battle.SetState("NextRound");
+                Battle.SetState(BattleState.NextRound);
                 return;
             }
             Battle.CurrentActor = nextActor;
             if (nextActor.Team == "Player")
             {
-                Battle.SetState("PlayerTurn");
+                Battle.SetState(BattleState.PlayerTurn);
                 return;
             }
-            Battle.SetState("AiTurn");
+            Battle.SetState(BattleState.AiTurn);
         }
     }
 
@@ -182,12 +203,12 @@ namespace StateMachine.Demo
                 goto wrongTarget;
             }
 
-            Battle.SetState("ActorUsesSkill", target);
+            Battle.SetState(BattleState.ActorUsesSkill, target);
             return;
 
             wrongTarget:
             Console.WriteLine("");
-            Battle.SetState("NextTurn");
+            Battle.SetState(BattleState.NextTurn);
         }
     }
 
@@ -197,13 +218,13 @@ namespace StateMachine.Demo
         {
             Console.WriteLine($"{Battle.CurrentActor.Name} takes action");
             var target = Battle.GetTeam("Player").First(actor => !actor.IsDead);
-            Battle.SetState("ActorUsesSkill", target);
+            Battle.SetState(BattleState.ActorUsesSkill, target);
         }
     }
 
     public class OverState : BattleStateScript
     {
-        public override void Initialize(IObjectWithState owner, object paramObj = null)
+        public override void Initialize(object owner, object paramObj = null)
         {
             base.Initialize(owner, paramObj);
             Console.WriteLine("Battle is over");
