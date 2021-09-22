@@ -199,7 +199,7 @@ namespace StateMachine.Demo
             }
             else if (target.IsDead)
             {
-                Console.WriteLine($"{targetName} is already dead");
+                Console.WriteLine($"{target.Name} is already dead");
                 goto wrongTarget;
             }
 
