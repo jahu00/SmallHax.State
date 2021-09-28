@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\StateMachine.Lib\StateMachine.Lib.csproj" />
+    <ProjectReference Include="..\SmallHax.State\SmallHax.State.csproj" />
   </ItemGroup>
 
 </Project>
