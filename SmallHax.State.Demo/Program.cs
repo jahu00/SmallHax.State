@@ -59,6 +59,8 @@ namespace SmallHax.State.Demo
                     break;
                 }
             }
+
+            Console.ReadLine();
         }
     }
 }

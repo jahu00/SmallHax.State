@@ -8,6 +8,7 @@ namespace SmallHax.State.Demo
 {
     public enum BattleState
     {
+        NotSet = -1,
         Start,
         NextRound,
         NextTurn,
@@ -19,12 +20,9 @@ namespace SmallHax.State.Demo
         Over
     }
 
-    public class Battle : IObjectWithState<BattleState>
+    public class Battle
     {
-        public Dictionary<BattleState, Type> StateTypes { get; set; } = new Dictionary<BattleState, Type>();
-
-        public IStateScript CurrentStateScript { get; set; }
-        public BattleState CurrentState { get; set; }
+        private StateMachine<Battle, BattleState> StateMachine { get; set; }
 
         public List<Actor> Actors { get; set; }
 
@@ -36,25 +34,37 @@ namespace SmallHax.State.Demo
         public Actor CurrentActor { get; set; }
 
         public int Round { get; set; }
+        public BattleState CurrentState => StateMachine.CurrentState;
 
         public Battle()
         {
+            StateMachine = new StateMachine<Battle, BattleState>(this);
             InitStates();
+            StateMachine.SetState(BattleState.Start);
         }
 
-        public void InitStates()
+        private void InitStates()
         {
-            this.AddState<StartState>(BattleState.Start);
-            this.AddState<NextRoundState>(BattleState.NextRound);
-            this.AddState<NextTurnState>(BattleState.NextTurn);
-            this.AddState<PlayerTurnState>(BattleState.PlayerTurn);
-            this.AddState<AiTurnState>(BattleState.AiTurn);
-            this.AddState<ActorUsesSkillState>(BattleState.ActorUsesSkill);
-            this.AddState<WonState>(BattleState.Won);
-            this.AddState<LostState>(BattleState.Lost);
-            this.AddState<OverState>(BattleState.Over);
+            StateMachine.AddState<StartState>(BattleState.Start);
+            StateMachine.AddState<NextRoundState>(BattleState.NextRound);
+            StateMachine.AddState<NextTurnState>(BattleState.NextTurn);
+            StateMachine.AddState<PlayerTurnState>(BattleState.PlayerTurn);
+            StateMachine.AddState<AiTurnState>(BattleState.AiTurn);
+            StateMachine.AddState<ActorUsesSkillState>(BattleState.ActorUsesSkill);
+            StateMachine.AddState<WonState>(BattleState.Won);
+            StateMachine.AddState<LostState>(BattleState.Lost);
+            StateMachine.AddState<OverState>(BattleState.Over);
         }
 
+        public void Process()
+        {
+            StateMachine.Process();
+        }
+
+        public void SetState(BattleState newState, object stateArgs = null)
+        {
+            StateMachine.SetState(newState, stateArgs);
+        }
     }
 
     internal class StartState : BattleStateScript
@@ -123,10 +133,10 @@ namespace SmallHax.State.Demo
     public class ActorUsesSkillState : BattleStateScript
     {
         private Actor Target { get; set; }
-        public override void Initialize(object owner, object paramObj = null)
+        public override void Initialize(Battle owner, StateMachine<Battle,BattleState> stateMachine, object stateArgs = null)
         {
-            base.Initialize(owner, paramObj);
-            Target = (Actor)paramObj;
+            base.Initialize(owner, stateMachine, stateArgs);
+            Target = (Actor)stateArgs;
         }
 
         public override void Process()
@@ -224,9 +234,9 @@ namespace SmallHax.State.Demo
 
     public class OverState : BattleStateScript
     {
-        public override void Initialize(object owner, object paramObj = null)
+        public override void Initialize(Battle owner, StateMachine<Battle,BattleState> stateMachine, object stateArgs = null)
         {
-            base.Initialize(owner, paramObj);
+            base.Initialize(owner, stateMachine, stateArgs);
             Console.WriteLine("Battle is over");
         }
 

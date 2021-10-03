@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace SmallHax.State
 {
-    public interface IStateScript
+    public interface IStateScript<TOwner,TStateKey> where TStateKey : Enum
     {
-        void Initialize(object owner, object paramObj = null);
+        void Initialize(TOwner owner, StateMachine<TOwner,TStateKey> stateMachine, object stateArgs = null);
         void Process();
         void Deinitialize();
 

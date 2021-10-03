@@ -6,19 +6,8 @@ using System.Threading.Tasks;
 
 namespace SmallHax.State.Demo
 {
-    public abstract class BattleStateScript : IStateScript
+    public abstract class BattleStateScript : StateScript<Battle, BattleState>
     {
-        protected Battle Battle { get; set; }
-
-        public virtual void Deinitialize()
-        {
-        }
-
-        public virtual void Initialize(object owner, object paramObj = null)
-        {
-            Battle = (Battle)owner;
-        }
-
-        public abstract void Process();
+        protected Battle Battle => Owner;
     }
 }
