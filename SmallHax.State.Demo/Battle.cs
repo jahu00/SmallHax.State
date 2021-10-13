@@ -40,7 +40,23 @@ namespace SmallHax.State.Demo
         {
             StateMachine = new StateMachine<Battle, BattleState>(this);
             InitStates();
+            StateMachine.StateChanging += StateChanging;
+            StateMachine.StateChanged += StateChanged;
             StateMachine.SetState(BattleState.Start);
+        }
+
+        private void StateChanged(object sender, StateChangeEventArgs<Battle, BattleState> stateChangeEventArgs)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"Battle changed state from {stateChangeEventArgs.OldState} to {stateChangeEventArgs.NewState}");
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        private void StateChanging(object sender, StateChangeEventArgs<Battle, BattleState> stateChangeEventArgs)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Battle changing state from {stateChangeEventArgs.OldState} to {stateChangeEventArgs.NewState}");
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
         private void InitStates()
@@ -55,6 +71,8 @@ namespace SmallHax.State.Demo
             StateMachine.AddState<LostState>(BattleState.Lost);
             StateMachine.AddState<OverState>(BattleState.Over);
         }
+
+        
 
         public void Process()
         {

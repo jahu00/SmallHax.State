@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace SmallHax.State
 {
+    public delegate void StateChangeEventHandler<TOwner, TStateKey>(object sender, StateChangeEventArgs<TOwner,TStateKey> stateChangeEventArgs) where TStateKey : Enum;
+
     public class StateMachine<TOwner,TStateKey> where TStateKey : Enum
     {
         private TOwner Owner { get; set; }
@@ -13,6 +15,8 @@ namespace SmallHax.State
         public IStateScript<TOwner,TStateKey> CurrentStateScript { get; private set; } = null;
         public TStateKey CurrentState { get; private set; } = (TStateKey)(object)-1;
 
+        public event StateChangeEventHandler<TOwner, TStateKey> StateChanging;
+        public event StateChangeEventHandler<TOwner, TStateKey> StateChanged;
         public StateMachine(TOwner owner)
         {
             Owner = owner;
@@ -20,6 +24,17 @@ namespace SmallHax.State
 
         public void SetState(TStateKey newState, object stateArgs = null)
         {
+            var oldState = CurrentState;
+            var stateChangeEventArs = new StateChangeEventArgs<TOwner, TStateKey>()
+            {
+                Owner = Owner,
+                NewState = newState,
+                OldState = oldState,
+                StateArgs = stateArgs
+            };
+
+            StateChanging?.Invoke(this, stateChangeEventArs);
+
             if (CurrentStateScript != null)
             {
                 CurrentStateScript.Deinitialize();
@@ -30,6 +45,8 @@ namespace SmallHax.State
             CurrentState = newState;
             CurrentStateScript = newStateScript;
             CurrentStateScript.Initialize(Owner, this, stateArgs);
+
+            StateChanged?.Invoke(this, stateChangeEventArs);
         }
 
         public void Process()
